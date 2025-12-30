@@ -29,6 +29,7 @@
       <button class="nav-btn active" data-view="alerts">Auto Stock Alerts</button>
       <button class="nav-btn" data-view="summary">Summary Dashboard</button>
       <button class="nav-btn" data-view="range">Custom Range Dashboard</button>
+    <button class="nav-btn" data-view="pricing">Pricing AI</button>
       
       <!-- NEW Manage Items view -->
       <button class="nav-btn" data-view="manage">Manage Items</button>
@@ -278,6 +279,39 @@
           <p id="summary-helper" class="health-status small"></p>
         </section>
       </section>
+
+
+      <section id="view-pricing" class="hidden">
+  <section class="card card-wide">
+    <div class="card-header-row">
+      <h2>🏷️ AI Dynamic Pricing Strategy</h2>
+      <div class="card-controls">
+        <input id="pricing-store-input" type="number" placeholder="Store ID (e.g. 1)" class="select-sm" value="1" style="width:120px;">
+        <button id="load-pricing-btn" class="btn btn-sm">Generate Strategy</button>
+      </div>
+    </div>
+
+    <p class="health-status small">
+      AI analyzes stock vs predicted demand to suggest discounts automatically.
+    </p>
+
+    <div class="table-wrapper" style="margin-top:15px; max-height: 450px;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Item Family</th>
+            <th>Current Stock</th>
+            <th>Predicted Demand</th>
+            <th>AI Recommendation</th>
+            <th>Reasoning</th>
+          </tr>
+        </thead>
+        <tbody id="pricing-table-body">
+          </tbody>
+      </table>
+    </div>
+  </section>
+</section>
 
       <!-- VIEW 3: Custom Range Dashboard -->
       <section id="view-range" class="hidden">
