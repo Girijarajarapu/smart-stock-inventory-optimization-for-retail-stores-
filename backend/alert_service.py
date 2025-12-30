@@ -4,8 +4,8 @@ from email_utils import send_email
 from sms_utils import send_sms
 from alert_settings import ENABLE_EMAIL_ALERTS, ENABLE_SMS_ALERTS
 
-ADMIN_EMAIL = "amankgo23@gmail.com"
-ADMIN_PHONE = "+917903447986"
+ADMIN_EMAIL = "ADMIN@gmail.com"
+ADMIN_PHONE = "+919324567890"
 
 def check_stock_and_alert(db):
     items = db.query(Inventory).all()
