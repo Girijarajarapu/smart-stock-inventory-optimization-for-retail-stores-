@@ -129,7 +129,9 @@ document.addEventListener("DOMContentLoaded", () => {
     summary: document.getElementById("view-summary"),
     range: document.getElementById("view-range"),
     manage: document.getElementById("view-manage"),
-    mba: document.getElementById("view-mba"), // NEW
+    //mba: document.getElementById("view-mba"), // NEW
+    pricing: document.getElementById("view-pricing"),
+    deadstock: document.getElementById("view-deadstock"), // NEW ADDED
   };
 
   function stopAutoRefresh() {
@@ -244,14 +246,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- NOTIFICATION CONTROLLER ---
-  async function loadAlertSettings() {
+ async function loadAlertSettings() {
     try {
       const res = await fetch(API_BASE_URL + "/alert-settings");
       const data = await res.json();
+      
+      // Ye zaroor check karein ki data sahi format me aa raha hai
+      console.log("Loaded Settings:", data);
+      
+      // State update karein
       settingsState.email = data.email;
       settingsState.sms = data.sms;
+      
+      // UI update function call karein
       renderToggleUI();
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error("Error loading settings:", err); 
+    }
   }
 
   function renderToggleUI() {
@@ -284,14 +295,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function updateBackendSettings() {
     try {
-      if(alertSystemMsg) alertSystemMsg.textContent = "Saving...";
-      await fetch(API_BASE_URL + "/alert-settings", {
+      if(alertSystemMsg) alertSystemMsg.textContent = "Saving settings...";
+      
+      // Console me print karein taaki pata chale kya bheja ja raha hai
+      console.log("Sending Settings:", settingsState); 
+
+      const res = await fetch(API_BASE_URL + "/alert-settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settingsState)
       });
-      if(alertSystemMsg) alertSystemMsg.textContent = ""; 
-    } catch (err) { console.error(err); }
+
+      if (!res.ok) {
+        throw new Error("Failed to save settings");
+      }
+
+      const data = await res.json();
+      console.log("Settings Saved:", data);
+
+      if(alertSystemMsg) {
+          alertSystemMsg.textContent = "Settings Saved!";
+          alertSystemMsg.style.color = "#4ade80"; // Green color
+          setTimeout(() => { alertSystemMsg.textContent = ""; }, 2000);
+      }
+    } catch (err) { 
+      console.error(err); 
+      if(alertSystemMsg) {
+          alertSystemMsg.textContent = "❌ Error saving settings";
+          alertSystemMsg.style.color = "var(--error-text)";
+      }
+    }
   }
 
   if (toggleEmailCard) {
@@ -911,3 +944,100 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+// --- DEAD STOCK LOGIC ---
+// --- DEAD STOCK LOGIC (UPDATED) ---
+    // --- DEAD STOCK LOGIC (UPDATED WITH DAYS) ---
+// --- DEAD STOCK LOGIC (WITH FILTER) ---
+    
+// --- AI PRICING STRATEGY LOGIC ---
+  // --- AI PRICING STRATEGY LOGIC (FIXED) ---
+  const pricingStoreInput = document.getElementById("pricing-store-input");
+  const loadPricingBtn = document.getElementById("load-pricing-btn");
+  const pricingTableBody = document.getElementById("pricing-table-body");
+
+  async function loadPricingStrategy() {
+    // 1. Inputs Check
+    if (!pricingStoreInput || !pricingTableBody) return;
+    
+    const storeId = pricingStoreInput.value || 1;
+    pricingTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">🤖 AI is analyzing market trends... please wait.</td></tr>';
+
+    try {
+      console.log(`Fetching strategy for store ${storeId}...`);
+      
+      // 2. Fetch Data
+      const res = await fetch(`${API_BASE_URL}/pricing-strategy/${storeId}`);
+      
+      // 3. Check Network Status
+      if (!res.ok) {
+        throw new Error(`Server returned status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log("Data Received from Backend:", data); // <--- Ye Console me check karna
+
+      // 4. Safe Data Access
+      const items = data.items || [];
+      
+      pricingTableBody.innerHTML = ""; // Clear loading msg
+
+      if (items.length === 0) {
+        pricingTableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No inventory data found for this store.</td></tr>';
+        return;
+      }
+
+      // 5. Render Rows
+      items.forEach(item => {
+        const tr = document.createElement("tr");
+
+        // Color Coding based on Action
+        let badgeColor = "gray";
+        let badgeText = item.action_label || "STANDARD"; // Fallback added
+        let rowStyle = "";
+
+        // Safe check for action_label
+        const action = (item.action_label || "").toUpperCase();
+
+        if (action === "CLEARANCE") {
+          badgeColor = "#ef4444"; // Red
+          badgeText = `🔥 ${item.discount_percent}% OFF`;
+          rowStyle = "background: rgba(239, 68, 68, 0.1);"; 
+        } else if (action === "PROMOTION") {
+          badgeColor = "#f59e0b"; // Orange
+          badgeText = `🏷️ ${item.discount_percent}% OFF`;
+        } else if (action === "PREMIUM") {
+          badgeColor = "#10b981"; // Green
+          badgeText = "💎 NO DISCOUNT";
+        } else if (action === "RESTOCK") {
+            badgeColor = "#3b82f6"; // Blue
+            badgeText = "📦 RE-ORDER";
+        }
+
+        const badgeHtml = `<span style="background:${badgeColor}; color:white; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.8rem;">${badgeText}</span>`;
+
+        // Safe Number Formatting
+        const stockVal = item.current_stock !== undefined ? Number(item.current_stock).toFixed(0) : "0";
+        const predVal = item.predicted_sales !== undefined ? Number(item.predicted_sales).toFixed(1) : "0.0";
+
+        tr.style = rowStyle;
+        tr.innerHTML = `
+          <td>${item.family || "Unknown"}</td>
+          <td>${stockVal}</td>
+          <td>${predVal}</td>
+          <td>${badgeHtml}</td>
+          <td class="small" style="color:var(--muted);">${item.reason || "-"}</td>
+        `;
+        pricingTableBody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error("Javascript Error:", err); // <--- Ye Console me Error dikhayega
+      pricingTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">
+        Error: ${err.message}. <br>Check Console (F12) for details.
+      </td></tr>`;
+    }
+  }
+
+  if (loadPricingBtn) {
+    loadPricingBtn.addEventListener("click", loadPricingStrategy);
+  }
