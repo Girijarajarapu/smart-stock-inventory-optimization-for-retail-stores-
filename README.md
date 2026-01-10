@@ -2,8 +2,6 @@
 
 SmartStock is a comprehensive **E-Commerce & ERP solution** designed to optimize retail store inventory using **Machine Learning**. It helps store managers prevent stockouts and overstocking by forecasting demand, analyzing sales patterns, and automating alert systems.
 
-Built for the **E-Commerce & ERP (PEC-AIML 702A)** curriculum.
-
 ---
 
 ## 🚀 Key Features
